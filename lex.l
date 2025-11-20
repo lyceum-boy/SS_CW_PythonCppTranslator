@@ -15,7 +15,6 @@
 
 "for"    { return FOR; }
 "in"     { return IN; }
-"print"  { return PRINT; }
 "append" { return APPEND; }
 
 "("      { return LPAREN; }
@@ -31,7 +30,6 @@
 "<="|[=+*]      { strcpy(yylval.data, yytext); return OP; }
 [0-9]+"."[0-9]+ { strcpy(yylval.data, yytext); return FLOAT; }
 [0-9]+          { strcpy(yylval.data, yytext); return INT; }
-\"[^"]*\"       { strcpy(yylval.data, yytext); return STRING; }
 
 [a-zA-Z_][a-zA-Z0-9_]* { strcpy(yylval.data, yytext); return IDENT; }
 

@@ -17,6 +17,7 @@ void yyerror(const char *s) {
 %token DEF
 %token LPAREN RPAREN COLON ARROW
 %token LBRACKET RBRACKET COMMA
+%token FOR IN RANGE APPEND DOT
 %token <data> IDENT FLOAT INT OP RETURN WHILE
 
 %type <data> START ROOT HEADER CONST_PI
@@ -24,6 +25,7 @@ void yyerror(const char *s) {
 %type <data> TERM EXPR
 %type <data> ASSIGNMENT T_INT T_FLOAT T_NONE
 %type <data> BLOCK_LISTS LIST_NUMBERS LIST_SQUARES LIST_VALUES
+%type <data> FOR_HEADER APPEND_CALL BLOCK_FOR LOOP_BODY
 
 %start START
 
@@ -31,7 +33,7 @@ void yyerror(const char *s) {
 
 START: ROOT { fprintf(yyout, "%s", $1); };
 
-ROOT: HEADER CONST_PI FUNC_CIRCLE FUNC_FACT BLOCK_LISTS {
+ROOT: HEADER CONST_PI FUNC_CIRCLE FUNC_FACT BLOCK_LISTS BLOCK_FOR {
     strcpy($$, $1);
     strcat($$, $2);
     strcat($$, "\n");
@@ -40,6 +42,8 @@ ROOT: HEADER CONST_PI FUNC_CIRCLE FUNC_FACT BLOCK_LISTS {
     strcat($$, $4);
     strcat($$, "\n");
     strcat($$, $5);
+    strcat($$, "\n");
+    strcat($$, $6);
 };
 
 HEADER: {
@@ -197,6 +201,54 @@ LIST_SQUARES: IDENT OP LBRACKET RBRACKET {
 BLOCK_LISTS: LIST_NUMBERS LIST_SQUARES {
     strcpy($$, $1);
     strcat($$, $2);
+};
+
+FOR_HEADER
+    : FOR IDENT IN IDENT COLON
+{
+    strcpy($$, "for (auto ");
+    strcat($$, $2);
+    strcat($$, " : ");
+    strcat($$, $4);
+    strcat($$, ") {\n");
+}
+    | FOR IDENT IN RANGE LPAREN INT COMMA INT RPAREN COLON
+{
+    strcpy($$, "for (int ");
+    strcat($$, $2);
+    strcat($$, " = ");
+    strcat($$, $6);
+    strcat($$, "; ");
+    strcat($$, $2);
+    strcat($$, " < ");
+    strcat($$, $8);
+    strcat($$, "; ");
+    strcat($$, $2);
+    strcat($$, "++) {\n");
+};
+
+APPEND_CALL
+    : IDENT DOT APPEND LPAREN IDENT RPAREN
+{
+    strcpy($$, $1);
+    strcat($$, ".push_back(");
+    strcat($$, $5);
+    strcat($$, ");");
+}
+
+LOOP_BODY: ASSIGNMENT APPEND_CALL { 
+    strcpy($$, "    ");
+    strcat($$, $1);
+    strcat($$, ";\n");
+
+    strcat($$, "    ");
+    strcat($$, $2);
+};
+
+BLOCK_FOR: FOR_HEADER LOOP_BODY {
+    strcpy($$, $1);
+    strcat($$, $2);
+    strcat($$, "\n}\n");
 };
 
 %%
