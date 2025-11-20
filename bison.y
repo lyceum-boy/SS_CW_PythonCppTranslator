@@ -11,7 +11,7 @@ void yyerror(const char *s) {
 %}
 
 %union {
-    char data[512];
+    char data[8192];
 }
 
 %token DEF
@@ -26,6 +26,7 @@ void yyerror(const char *s) {
 %type <data> ASSIGNMENT T_INT T_FLOAT T_NONE
 %type <data> BLOCK_LISTS LIST_NUMBERS LIST_SQUARES LIST_VALUES
 %type <data> FOR_HEADER APPEND_CALL BLOCK_FOR LOOP_BODY
+%type <data> MAIN
 
 %start START
 
@@ -33,7 +34,7 @@ void yyerror(const char *s) {
 
 START: ROOT { fprintf(yyout, "%s", $1); };
 
-ROOT: HEADER CONST_PI FUNC_CIRCLE FUNC_FACT BLOCK_LISTS BLOCK_FOR {
+ROOT: HEADER CONST_PI FUNC_CIRCLE FUNC_FACT BLOCK_LISTS MAIN {
     strcpy($$, $1);
     strcat($$, $2);
     strcat($$, "\n");
@@ -53,6 +54,13 @@ HEADER: {
         "#include <vector>\n\n"
         "using namespace std;\n\n"
     );
+};
+
+MAIN: BLOCK_FOR {
+    strcpy($$, "int main() {\n");
+    strcat($$, $1);
+    strcat($$, "    return 0;\n");
+    strcat($$, "}\n");
 };
 
 CONST_PI: T_FLOAT IDENT OP FLOAT {
@@ -236,20 +244,22 @@ APPEND_CALL
     strcat($$, ");");
 }
 
-LOOP_BODY: T_INT ASSIGNMENT APPEND_CALL { 
-    strcpy($$, "    ");
+LOOP_BODY: T_INT ASSIGNMENT APPEND_CALL {
+    strcpy($$, "        ");
     strcat($$, $1);
     strcat($$, $2);
     strcat($$, ";\n");
 
-    strcat($$, "    ");
+    strcat($$, "        ");
     strcat($$, $3);
+    strcat($$, ";\n");
 };
 
 BLOCK_FOR: FOR_HEADER LOOP_BODY {
-    strcpy($$, $1);
+    strcpy($$, "    ");
+    strcat($$, $1);
     strcat($$, $2);
-    strcat($$, "\n}\n");
+    strcat($$, "    }\n");
 };
 
 %%
