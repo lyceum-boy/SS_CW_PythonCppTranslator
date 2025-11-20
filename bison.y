@@ -236,13 +236,14 @@ APPEND_CALL
     strcat($$, ");");
 }
 
-LOOP_BODY: ASSIGNMENT APPEND_CALL { 
+LOOP_BODY: T_INT ASSIGNMENT APPEND_CALL { 
     strcpy($$, "    ");
     strcat($$, $1);
+    strcat($$, $2);
     strcat($$, ";\n");
 
     strcat($$, "    ");
-    strcat($$, $2);
+    strcat($$, $3);
 };
 
 BLOCK_FOR: FOR_HEADER LOOP_BODY {
