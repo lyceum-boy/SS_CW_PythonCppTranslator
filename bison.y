@@ -195,7 +195,9 @@ LIST_VALUES
 LIST_NUMBERS: IDENT OP LBRACKET LIST_VALUES RBRACKET {
     strcpy($$, "vector<int> ");
     strcat($$, $1);
-    strcat($$, " = {");
+    strcat($$, " ");
+    strcat($$, $2);
+    strcat($$, " {");
     strcat($$, $4);
     strcat($$, "};\n");
 };
@@ -211,9 +213,7 @@ BLOCK_LISTS: LIST_NUMBERS LIST_SQUARES {
     strcat($$, $2);
 };
 
-FOR_HEADER
-    : FOR IDENT IN IDENT COLON
-{
+FOR_HEADER: FOR IDENT IN IDENT COLON {
     strcpy($$, "for (auto ");
     strcat($$, $2);
     strcat($$, " : ");

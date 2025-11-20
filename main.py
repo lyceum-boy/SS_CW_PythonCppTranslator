@@ -21,3 +21,8 @@ squares = []
 for num in numbers:
     sq = num * num
     squares.append(sq)
+
+print("Список квадратов:")
+for s in squares:
+    print(s, end=" ")
+print()
