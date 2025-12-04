@@ -66,3 +66,15 @@ print("Площадь круга радиуса", r, "=", circle_area(r))
 
 n = 6
 print("Факториал числа", n, "=", factorial(n))
+
+# Работа со строками и списками.
+words = ["Язык", "Си", "не", "так", "страшен", "как", "кажется"]
+
+sentence = ""
+for w in words:
+    sentence += w + " "
+print(sentence)
+
+print("Обратный порядок:", " ".join(reversed(words)))
+
+print("Это последняя строчка точки входа! (^=◕ᴥ◕=^)")

@@ -5,8 +5,11 @@
 int yylex(void);
 extern FILE *yyin;
 extern FILE *yyout;
+extern char *yytext;
+extern int yylineno;
+#define YYERROR_VERBOSE 1
 void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
+    fprintf(stderr, "Error at line %d near '%s': %s\n", yylineno, yytext, s);
 }
 %}
 
@@ -33,6 +36,9 @@ void yyerror(const char *s) {
 %type <data> COND_BLOCK IF_PART ELIF_PART ELSE_PART
 %type <data> BLOCK_WHILE BLOCK_FOR_CONTINUE
 %type <data> BLOCK_CALLS PRINT_FUNC_CALL
+%type <data> STR_LIST_VALUES WORDS_LIST
+%type <data> PRINT_JOIN_ALL PRINT_JOIN_REVERSED
+%type <data> BLOCK_WORDS
 
 %start START
 
@@ -42,14 +48,10 @@ START: ROOT { fprintf(yyout, "%s", $1); };
 
 ROOT: HEADER CONST_PI FUNC_CIRCLE FUNC_FACT BLOCK_LISTS MAIN {
     strcpy($$, $1);
-    strcat($$, $2);
-    strcat($$, "\n");
-    strcat($$, $3);
-    strcat($$, "\n");
-    strcat($$, $4);
-    strcat($$, "\n");
-    strcat($$, $5);
-    strcat($$, "\n");
+    strcat($$, $2); strcat($$, "\n");
+    strcat($$, $3); strcat($$, "\n");
+    strcat($$, $4); strcat($$, "\n");
+    strcat($$, $5); strcat($$, "\n");
     strcat($$, $6);
 };
 
@@ -75,24 +77,19 @@ HEADER: {
     );
 };
 
-MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK BLOCK_WHILE BLOCK_FOR_CONTINUE BLOCK_CALLS {
+MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK BLOCK_WHILE BLOCK_FOR_CONTINUE BLOCK_CALLS BLOCK_WORDS PRINT_STMT {
     strcpy($$, "int main() {\n");
     strcat($$, "    system(\"chcp 65001\");\n");
     strcat($$, "    system(\"cls\");\n\n");
-    strcat($$, $1);
-    strcat($$, "\n");
-    strcat($$, $2);
-    strcat($$, "\n");
-    strcat($$, $3);
-    strcat($$, "\n");
-    strcat($$, $4);
-    strcat($$, "\n");
-    strcat($$, $5);
-    strcat($$, "\n");
-    strcat($$, $6);
-    strcat($$, "\n");
-    strcat($$, $7);
-    strcat($$, "\n");
+    strcat($$, $1); strcat($$, "\n");
+    strcat($$, $2); strcat($$, "\n");
+    strcat($$, $3); strcat($$, "\n");
+    strcat($$, $4); strcat($$, "\n");
+    strcat($$, $5); strcat($$, "\n");
+    strcat($$, $6); strcat($$, "\n");
+    strcat($$, $7); strcat($$, "\n");
+    strcat($$, $8); strcat($$, "\n");
+    strcat($$, "    "); strcat($$, $9);  strcat($$, "\n");
     strcat($$, "    return 0;\n");
     strcat($$, "}\n");
 };
@@ -597,6 +594,85 @@ BLOCK_CALLS
 
     strcat($$, "    ");
     strcat($$, $7);
+    strcat($$, "\n");
+};
+
+STR_LIST_VALUES
+  : STRING { strcpy($$, $1); }
+  | STR_LIST_VALUES COMMA STRING {
+        strcpy($$, $1);
+        strcat($$, ", ");
+        strcat($$, $3);
+    }
+  ;
+
+WORDS_LIST: IDENT OP LBRACKET STR_LIST_VALUES RBRACKET {
+    strcpy($$, "vector<string> ");
+    strcat($$, $1);
+    strcat($$, " ");
+    strcat($$, $2);
+    strcat($$, " {");
+    strcat($$, $4);
+    strcat($$, "};\n");
+};
+
+PRINT_JOIN_ALL: PRINT LPAREN IDENT RPAREN {
+    strcpy($$, "cout << ");
+    strcat($$, $3);
+    strcat($$, " << endl;");
+};
+
+PRINT_JOIN_REVERSED: PRINT LPAREN STRING COMMA STRING DOT IDENT LPAREN IDENT LPAREN IDENT RPAREN RPAREN RPAREN {
+    char buf[8192];
+    strcpy(buf, "cout << ");
+    strcat(buf, $3);
+    strcat(buf, " << \" \";\n");
+    strcat(buf, "    for (auto it = ");
+    strcat(buf, $11);
+    strcat(buf, ".rbegin(); it != ");
+    strcat(buf, $11);
+    strcat(buf, ".rend(); ++it) {\n");
+    strcat(buf, "        cout << *it << \" \";\n");
+    strcat(buf, "    }\n");
+    strcat(buf, "    cout << endl;");
+    strcpy($$, buf);
+};
+
+BLOCK_WORDS
+  : COMMENT_LINE
+    WORDS_LIST
+    TEXT_ASSIGN
+    FOR_HEADER
+        T_NONE ASSIGNMENT
+    PRINT_JOIN_ALL
+    PRINT_JOIN_REVERSED
+{
+    strcpy($$, "    ");
+    strcat($$, $1);
+    strcat($$, "\n");
+
+    strcat($$, "    ");
+    strcat($$, $2);
+
+    strcat($$, "    ");
+    strcat($$, $3);
+    strcat($$, "\n");
+
+    strcat($$, "    ");
+    strcat($$, $4);
+
+    strcat($$, "        ");
+    strcat($$, $6);
+    strcat($$, ";\n");
+
+    strcat($$, "    }\n");
+
+    strcat($$, "    ");
+    strcat($$, $7);
+    strcat($$, "\n");
+
+    strcat($$, "    ");
+    strcat($$, $8);
     strcat($$, "\n");
 };
 
