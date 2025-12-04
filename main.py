@@ -31,3 +31,10 @@ print()
 text = "Транслятор Python в C++"
 length = len(text)
 print("Длина текста:", length)
+
+if length > 20:
+    print("Длинная строка")
+elif length == 20:
+    print("Строка средней длины")
+else:
+    print("Короткая строка")

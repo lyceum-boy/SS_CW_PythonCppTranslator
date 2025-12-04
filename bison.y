@@ -19,6 +19,7 @@ void yyerror(const char *s) {
 %token LBRACKET RBRACKET COMMA
 %token FOR IN RANGE APPEND DOT
 %token PRINT
+%token IF ELIF ELSE
 %token <data> IDENT FLOAT INT OP RETURN WHILE STRING COMMENT
 
 %type <data> START ROOT HEADER CONST_PI
@@ -29,6 +30,7 @@ void yyerror(const char *s) {
 %type <data> FOR_HEADER APPEND_CALL BLOCK_FOR LOOP_BODY
 %type <data> MAIN BLOCK_PRINTS PRINT_STMT PRINT_IN_LOOP
 %type <data> COMMENT_LINE TEXT_ASSIGN LENGTH_ASSIGN BLOCK_STRINGS
+%type <data> COND_BLOCK IF_PART ELIF_PART ELSE_PART
 
 %start START
 
@@ -59,7 +61,7 @@ HEADER: {
     );
 };
 
-MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS {
+MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK {
     strcpy($$, "int main() {\n");
     strcat($$, "    system(\"chcp 65001\");\n");
     strcat($$, "    system(\"cls\");\n\n");
@@ -68,6 +70,8 @@ MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS {
     strcat($$, $2);
     strcat($$, "\n");
     strcat($$, $3);
+    strcat($$, "\n");
+    strcat($$, $4);
     strcat($$, "\n");
     strcat($$, "    return 0;\n");
     strcat($$, "}\n");
@@ -385,6 +389,40 @@ BLOCK_STRINGS: COMMENT_LINE TEXT_ASSIGN LENGTH_ASSIGN PRINT_STMT {
     strcat($$, "    ");
     strcat($$, $4);
     strcat($$, "\n");
+};
+
+IF_PART: IF EXPR COLON PRINT_STMT {
+    strcpy($$, "    if (");
+    strcat($$, $2);
+    strcat($$, ") {\n        ");
+    strcat($$, $4);
+    strcat($$, "\n    }\n");
+};
+
+ELIF_PART:
+    { strcpy($$, ""); }
+  | ELIF EXPR COLON PRINT_STMT {
+        strcpy($$, "    else if (");
+        strcat($$, $2);
+        strcat($$, ") {\n        ");
+        strcat($$, $4);
+        strcat($$, "\n    }\n");
+    }
+  ;
+
+ELSE_PART:
+    { strcpy($$, ""); }
+  | ELSE COLON PRINT_STMT {
+        strcpy($$, "    else {\n        ");
+        strcat($$, $3);
+        strcat($$, "\n    }\n");
+    }
+  ;
+
+COND_BLOCK: IF_PART ELIF_PART ELSE_PART {
+    strcpy($$, $1);
+    strcat($$, $2);
+    strcat($$, $3);
 };
 
 %%

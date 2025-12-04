@@ -18,6 +18,10 @@
 "append" { return APPEND; }
 "print"  { return PRINT; }
 
+"if"     { return IF; }
+"elif"   { return ELIF; }
+"else"   { return ELSE; }
+
 "("      { return LPAREN; }
 ")"      { return RPAREN; }
 ":"      { return COLON; }
@@ -28,7 +32,7 @@
 ","      { return COMMA; }
 "."      { return DOT; }
 
-"<="|[=+*]      { strcpy(yylval.data, yytext); return OP; }
+"=="|"<="|">="|"!="|[=+*<>]  { strcpy(yylval.data, yytext); return OP; }
 [0-9]+"."[0-9]+ { strcpy(yylval.data, yytext); return FLOAT; }
 [0-9]+          { strcpy(yylval.data, yytext); return INT; }
 
