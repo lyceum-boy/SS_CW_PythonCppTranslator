@@ -38,3 +38,15 @@ elif length == 20:
     print("Строка средней длины")
 else:
     print("Короткая строка")
+
+# Демонстрация цикла while + break.
+x = 0
+sum_even = 0
+while True:
+    if x > 10:
+        break
+    if x % 2 == 0:
+        sum_even += x
+    x += 1
+
+print("Сумма чётных чисел от 0 до 10:", sum_even)

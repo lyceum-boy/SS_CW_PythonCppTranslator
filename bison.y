@@ -31,6 +31,7 @@ void yyerror(const char *s) {
 %type <data> MAIN BLOCK_PRINTS PRINT_STMT PRINT_IN_LOOP
 %type <data> COMMENT_LINE TEXT_ASSIGN LENGTH_ASSIGN BLOCK_STRINGS
 %type <data> COND_BLOCK IF_PART ELIF_PART ELSE_PART
+%type <data> BLOCK_WHILE
 
 %start START
 
@@ -61,7 +62,7 @@ HEADER: {
     );
 };
 
-MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK {
+MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK BLOCK_WHILE {
     strcpy($$, "int main() {\n");
     strcat($$, "    system(\"chcp 65001\");\n");
     strcat($$, "    system(\"cls\");\n\n");
@@ -72,6 +73,8 @@ MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK {
     strcat($$, $3);
     strcat($$, "\n");
     strcat($$, $4);
+    strcat($$, "\n");
+    strcat($$, $5);
     strcat($$, "\n");
     strcat($$, "    return 0;\n");
     strcat($$, "}\n");
@@ -89,7 +92,15 @@ CONST_PI: T_FLOAT IDENT OP FLOAT {
 };
 
 TERM
-  : IDENT  { strcpy($$, $1); }
+  : IDENT {
+        if (strcmp($1, "True") == 0) {
+            strcpy($$, "true");
+        } else if (strcmp($1, "False") == 0) {
+            strcpy($$, "false");
+        } else {
+            strcpy($$, $1);
+        }
+    }
   | FLOAT  { strcpy($$, $1); }
   | INT    { strcpy($$, $1); }
   | STRING { strcpy($$, $1); }
@@ -423,6 +434,67 @@ COND_BLOCK: IF_PART ELIF_PART ELSE_PART {
     strcpy($$, $1);
     strcat($$, $2);
     strcat($$, $3);
+};
+
+BLOCK_WHILE
+  : COMMENT_LINE
+    T_INT ASSIGNMENT
+    T_INT ASSIGNMENT
+    WHILE EXPR COLON
+        IF EXPR COLON
+            IDENT
+        IF EXPR COLON
+            T_NONE ASSIGNMENT
+        T_NONE ASSIGNMENT
+    PRINT_STMT
+{
+    strcpy($$, "    ");
+    strcat($$, $1);
+    strcat($$, "\n");
+
+    strcat($$, "    ");
+    strcat($$, $2);
+    strcat($$, $3);
+    strcat($$, ";\n");
+
+    strcat($$, "    ");
+    strcat($$, $4);
+    strcat($$, $5);
+    strcat($$, ";\n");
+
+    strcat($$, "    while (");
+    strcat($$, $7);
+    strcat($$, ") {\n");
+
+    strcat($$, "        if (");
+    strcat($$, $10);
+    strcat($$, ") {\n");
+    strcat($$, "            ");
+    if (strcmp($12, "break") == 0) {
+        strcat($$, "break;\n");
+    } else {
+        strcat($$, $12);
+        strcat($$, ";\n");
+    }
+    strcat($$, "        }\n");
+
+    strcat($$, "        if (");
+    strcat($$, $14);
+    strcat($$, ") {\n");
+    strcat($$, "            ");
+    strcat($$, $17);
+    strcat($$, ";\n");
+    strcat($$, "        }\n");
+
+    strcat($$, "        ");
+    strcat($$, $19);
+    strcat($$, ";\n");
+
+    strcat($$, "    }\n");
+
+    strcat($$, "    ");
+    strcat($$, $20);
+    strcat($$, "\n");
 };
 
 %%
