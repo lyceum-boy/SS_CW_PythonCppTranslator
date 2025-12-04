@@ -32,6 +32,7 @@ void yyerror(const char *s) {
 %type <data> COMMENT_LINE TEXT_ASSIGN LENGTH_ASSIGN BLOCK_STRINGS
 %type <data> COND_BLOCK IF_PART ELIF_PART ELSE_PART
 %type <data> BLOCK_WHILE BLOCK_FOR_CONTINUE
+%type <data> BLOCK_CALLS PRINT_FUNC_CALL
 
 %start START
 
@@ -74,7 +75,7 @@ HEADER: {
     );
 };
 
-MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK BLOCK_WHILE BLOCK_FOR_CONTINUE {
+MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK BLOCK_WHILE BLOCK_FOR_CONTINUE BLOCK_CALLS {
     strcpy($$, "int main() {\n");
     strcat($$, "    system(\"chcp 65001\");\n");
     strcat($$, "    system(\"cls\");\n\n");
@@ -89,6 +90,8 @@ MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK BLOCK_WHILE BLOCK_FOR_CONT
     strcat($$, $5);
     strcat($$, "\n");
     strcat($$, $6);
+    strcat($$, "\n");
+    strcat($$, $7);
     strcat($$, "\n");
     strcat($$, "    return 0;\n");
     strcat($$, "}\n");
@@ -550,6 +553,50 @@ BLOCK_FOR_CONTINUE
 
     strcat($$, "    ");
     strcat($$, $9);
+    strcat($$, "\n");
+};
+
+PRINT_FUNC_CALL: PRINT LPAREN STRING COMMA IDENT COMMA STRING COMMA IDENT LPAREN IDENT RPAREN RPAREN {
+    strcpy($$, "cout << ");
+    strcat($$, $3);
+    strcat($$, " << \" \" << ");
+    strcat($$, $5);
+    strcat($$, " << \" \" << ");
+    strcat($$, $7);
+    strcat($$, " << \" \" << ");
+    strcat($$, $9);
+    strcat($$, "(");
+    strcat($$, $11);
+    strcat($$, ") << endl;");
+};
+
+BLOCK_CALLS
+  : COMMENT_LINE
+    T_INT ASSIGNMENT
+    PRINT_FUNC_CALL
+    T_INT ASSIGNMENT
+    PRINT_FUNC_CALL
+{
+    strcpy($$, "    ");
+    strcat($$, $1);
+    strcat($$, "\n");
+
+    strcat($$, "    ");
+    strcat($$, $2);
+    strcat($$, $3);
+    strcat($$, ";\n");
+
+    strcat($$, "    ");
+    strcat($$, $4);
+    strcat($$, "\n");
+
+    strcat($$, "    ");
+    strcat($$, $5);
+    strcat($$, $6);
+    strcat($$, ";\n");
+
+    strcat($$, "    ");
+    strcat($$, $7);
     strcat($$, "\n");
 };
 

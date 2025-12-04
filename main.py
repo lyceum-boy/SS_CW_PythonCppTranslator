@@ -59,3 +59,10 @@ for n in range(1, 15):
     odd_numbers.append(n)
 
 print("Нечётные числа:", odd_numbers)
+
+# Вызов функций.
+r = 5
+print("Площадь круга радиуса", r, "=", circle_area(r))
+
+n = 6
+print("Факториал числа", n, "=", factorial(n))
