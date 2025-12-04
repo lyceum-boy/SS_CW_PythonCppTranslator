@@ -18,7 +18,8 @@ void yyerror(const char *s) {
 %token LPAREN RPAREN COLON ARROW
 %token LBRACKET RBRACKET COMMA
 %token FOR IN RANGE APPEND DOT
-%token <data> IDENT FLOAT INT OP RETURN WHILE
+%token PRINT
+%token <data> IDENT FLOAT INT OP RETURN WHILE STRING
 
 %type <data> START ROOT HEADER CONST_PI
 %type <data> FUNC_DECL FUNC_CIRCLE FUNC_FACT
@@ -26,7 +27,7 @@ void yyerror(const char *s) {
 %type <data> ASSIGNMENT T_INT T_FLOAT T_NONE
 %type <data> BLOCK_LISTS LIST_NUMBERS LIST_SQUARES LIST_VALUES
 %type <data> FOR_HEADER APPEND_CALL BLOCK_FOR LOOP_BODY
-%type <data> MAIN
+%type <data> MAIN BLOCK_PRINTS PRINT_STMT PRINT_IN_LOOP
 
 %start START
 
@@ -56,9 +57,14 @@ HEADER: {
     );
 };
 
-MAIN: BLOCK_FOR {
+MAIN: BLOCK_FOR BLOCK_PRINTS {
     strcpy($$, "int main() {\n");
+    strcat($$, "    system(\"chcp 65001\");\n");
+    strcat($$, "    system(\"cls\");\n\n");
     strcat($$, $1);
+    strcat($$, "\n");
+    strcat($$, $2);
+    strcat($$, "\n");
     strcat($$, "    return 0;\n");
     strcat($$, "}\n");
 };
@@ -77,7 +83,8 @@ CONST_PI: T_FLOAT IDENT OP FLOAT {
 TERM
   : IDENT { strcpy($$, $1); }
   | FLOAT { strcpy($$, $1); }
-  | INT   { strcpy($$, $1); };
+  | INT   { strcpy($$, $1); }
+  ;
 
 EXPR
   : TERM { strcpy($$, $1); }
@@ -139,13 +146,14 @@ FUNC_CIRCLE: FUNC_DECL T_FLOAT ASSIGNMENT RETURN IDENT {
     strcat($$, ";\n}\n");
 };
 
-FUNC_FACT: FUNC_DECL
-    T_INT   ASSIGNMENT
-    T_INT   ASSIGNMENT
-    WHILE   EXPR COLON
-    T_NONE  ASSIGNMENT
-    T_NONE  ASSIGNMENT
-    RETURN  IDENT
+FUNC_FACT
+  : FUNC_DECL
+        T_INT ASSIGNMENT
+        T_INT ASSIGNMENT
+        WHILE EXPR COLON
+            T_NONE ASSIGNMENT
+            T_NONE ASSIGNMENT
+        RETURN IDENT
 {
     strcpy($$, $1);
 
@@ -186,11 +194,8 @@ FUNC_FACT: FUNC_DECL
 
 LIST_VALUES
   : INT { strcpy($$, $1); }
-  | LIST_VALUES COMMA INT {
-        strcpy($$, $1);
-        strcat($$, ", ");
-        strcat($$, $3);
-};
+  | LIST_VALUES COMMA INT { strcpy($$, $1); strcat($$, ", "); strcat($$, $3); }
+  ;
 
 LIST_NUMBERS: IDENT OP LBRACKET LIST_VALUES RBRACKET {
     strcpy($$, "vector<int> ");
@@ -213,14 +218,15 @@ BLOCK_LISTS: LIST_NUMBERS LIST_SQUARES {
     strcat($$, $2);
 };
 
-FOR_HEADER: FOR IDENT IN IDENT COLON {
+FOR_HEADER
+  : FOR IDENT IN IDENT COLON {
     strcpy($$, "for (auto ");
     strcat($$, $2);
     strcat($$, " : ");
     strcat($$, $4);
     strcat($$, ") {\n");
 }
-    | FOR IDENT IN RANGE LPAREN INT COMMA INT RPAREN COLON
+  | FOR IDENT IN RANGE LPAREN INT COMMA INT RPAREN COLON
 {
     strcpy($$, "for (int ");
     strcat($$, $2);
@@ -235,9 +241,7 @@ FOR_HEADER: FOR IDENT IN IDENT COLON {
     strcat($$, "++) {\n");
 };
 
-APPEND_CALL
-    : IDENT DOT APPEND LPAREN IDENT RPAREN
-{
+APPEND_CALL: IDENT DOT APPEND LPAREN IDENT RPAREN {
     strcpy($$, $1);
     strcat($$, ".push_back(");
     strcat($$, $5);
@@ -260,6 +264,45 @@ BLOCK_FOR: FOR_HEADER LOOP_BODY {
     strcat($$, $1);
     strcat($$, $2);
     strcat($$, "    }\n");
+};
+
+PRINT_STMT
+  : PRINT LPAREN RPAREN { strcpy($$, "cout << endl;"); }
+  | PRINT LPAREN STRING RPAREN { strcpy($$, "cout << "); strcat($$, $3); strcat($$, " << endl;"); }
+  ;
+
+PRINT_IN_LOOP: PRINT LPAREN IDENT COMMA IDENT OP STRING RPAREN {
+    strcpy($$, "cout << ");
+    strcat($$, $3);
+    strcat($$, " << ");
+    strcat($$, $7);
+    strcat($$, ";");
+};
+
+BLOCK_PRINTS
+  : PRINT_STMT
+    FOR IDENT IN IDENT COLON
+        PRINT_IN_LOOP
+    PRINT_STMT
+{
+    strcpy($$, "    ");
+    strcat($$, $1);
+    strcat($$, "\n");
+
+    strcat($$, "    for (auto ");
+    strcat($$, $3);
+    strcat($$, " : ");
+    strcat($$, $5);
+    strcat($$, ") {\n");
+
+    strcat($$, "        ");
+    strcat($$, $7);
+    strcat($$, "\n");
+    strcat($$, "    }\n");
+
+    strcat($$, "    ");
+    strcat($$, $8);
+    strcat($$, "\n");
 };
 
 %%
