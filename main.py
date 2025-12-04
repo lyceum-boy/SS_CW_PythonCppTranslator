@@ -26,3 +26,8 @@ print("Список квадратов:")
 for s in squares:
     print(s, end=" ")
 print()
+
+# Работа со строками.
+text = "Транслятор Python в C++"
+length = len(text)
+print("Длина текста:", length)
