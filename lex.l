@@ -34,6 +34,7 @@
 "."      { return DOT; }
 
 "=="|"<="|">="|"!="|"\+="|[=+*<>%]  { strcpy(yylval.data, yytext); return OP; }
+
 [0-9]+"."[0-9]+ { strcpy(yylval.data, yytext); return FLOAT; }
 [0-9]+          { strcpy(yylval.data, yytext); return INT; }
 

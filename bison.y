@@ -62,8 +62,8 @@ HEADER: {
         "#include <vector>\n"
         "#include <string>\n\n"
         "using namespace std;\n\n"
-        "template <typename T>\n"
-        "ostream& operator<<(ostream& out, const vector<T>& vec) {\n"
+        "template<typename T>\n"
+        "ostream &operator<<(ostream &out, const vector<T> &vec) {\n"
         "    if (!vec.empty()) {\n"
         "        out << \"{\";\n"
         "        for (size_t i = 0; i < vec.size(); ++i) {\n"
@@ -73,6 +73,13 @@ HEADER: {
         "        out << \"}\";\n"
         "    }\n"
         "    return out;\n"
+        "}\n\n"
+        "size_t utf8_len(const std::string &s) {\n"
+        "    size_t len = 0;\n"
+        "    for (unsigned char c: s) {\n"
+        "        if ((c & 0xC0) != 0x80) ++len;\n"
+        "    }\n"
+        "    return len;\n"
         "}\n\n"
     );
 };
@@ -131,8 +138,9 @@ EXPR
     }
   | IDENT LPAREN IDENT RPAREN {
         if (strcmp($1, "len") == 0) {
-            strcpy($$, $3);
-            strcat($$, ".size()");
+            strcpy($$, "utf8_len(");
+            strcat($$, $3);
+            strcat($$, ")");
         } else {
             strcpy($$, $1);
             strcat($$, "(");
@@ -272,7 +280,7 @@ FOR_HEADER
   : FOR IDENT IN IDENT COLON {
         strcpy($$, "for (auto ");
         strcat($$, $2);
-        strcat($$, " : ");
+        strcat($$, ": ");
         strcat($$, $4);
         strcat($$, ") {\n");
     }
@@ -344,7 +352,7 @@ PRINT_IN_LOOP: PRINT LPAREN IDENT COMMA IDENT OP STRING RPAREN {
 
 BLOCK_PRINTS
   : PRINT_STMT
-    FOR IDENT IN IDENT COLON
+    FOR_HEADER
         PRINT_IN_LOOP
     PRINT_STMT
 {
@@ -352,19 +360,15 @@ BLOCK_PRINTS
     strcat($$, $1);
     strcat($$, "\n");
 
-    strcat($$, "    for (auto ");
-    strcat($$, $3);
-    strcat($$, " : ");
-    strcat($$, $5);
-    strcat($$, ") {\n");
+    strcat($$, "    "); strcat($$, $2);
 
     strcat($$, "        ");
-    strcat($$, $7);
+    strcat($$, $3);
     strcat($$, "\n");
     strcat($$, "    }\n");
 
     strcat($$, "    ");
-    strcat($$, $8);
+    strcat($$, $4);
     strcat($$, "\n");
 };
 
@@ -388,8 +392,9 @@ LENGTH_ASSIGN: IDENT OP IDENT LPAREN IDENT RPAREN {
     strcat($$, $1);
     strcat($$, " = ");
     if (strcmp($3, "len") == 0) {
+        strcat($$, "utf8_len(");
         strcat($$, $5);
-        strcat($$, ".size();");
+        strcat($$, ");");
     } else {
         strcat($$, $3);
         strcat($$, "(");
@@ -421,24 +426,24 @@ IF_PART: IF EXPR COLON PRINT_STMT {
     strcat($$, $2);
     strcat($$, ") {\n        ");
     strcat($$, $4);
-    strcat($$, "\n    }\n");
+    strcat($$, "\n    }");
 };
 
 ELIF_PART:
     { strcpy($$, ""); }
   | ELIF EXPR COLON PRINT_STMT {
-        strcpy($$, "    else if (");
+        strcpy($$, " else if (");
         strcat($$, $2);
         strcat($$, ") {\n        ");
         strcat($$, $4);
-        strcat($$, "\n    }\n");
+        strcat($$, "\n    }");
     }
   ;
 
 ELSE_PART:
     { strcpy($$, ""); }
   | ELSE COLON PRINT_STMT {
-        strcpy($$, "    else {\n        ");
+        strcpy($$, " else {\n        ");
         strcat($$, $3);
         strcat($$, "\n    }\n");
     }
@@ -617,9 +622,7 @@ WORDS_LIST: IDENT OP LBRACKET STR_LIST_VALUES RBRACKET {
 };
 
 PRINT_JOIN_ALL: PRINT LPAREN IDENT RPAREN {
-    strcpy($$, "cout << ");
-    strcat($$, $3);
-    strcat($$, " << endl;");
+    strcpy($$, "cout << "); strcat($$, $3); strcat($$, " << endl;");
 };
 
 PRINT_JOIN_REVERSED: PRINT LPAREN STRING COMMA STRING DOT IDENT LPAREN IDENT LPAREN IDENT RPAREN RPAREN RPAREN {
@@ -647,33 +650,14 @@ BLOCK_WORDS
     PRINT_JOIN_ALL
     PRINT_JOIN_REVERSED
 {
-    strcpy($$, "    ");
-    strcat($$, $1);
-    strcat($$, "\n");
-
-    strcat($$, "    ");
-    strcat($$, $2);
-
-    strcat($$, "    ");
-    strcat($$, $3);
-    strcat($$, "\n");
-
-    strcat($$, "    ");
-    strcat($$, $4);
-
-    strcat($$, "        ");
-    strcat($$, $6);
-    strcat($$, ";\n");
-
+    strcpy($$, "    "); strcat($$, $1); strcat($$, "\n");
+    strcat($$, "    "); strcat($$, $2);
+    strcat($$, "    "); strcat($$, $3); strcat($$, "\n");
+    strcat($$, "    "); strcat($$, $4);
+    strcat($$, "        "); strcat($$, $6); strcat($$, ";\n");
     strcat($$, "    }\n");
-
-    strcat($$, "    ");
-    strcat($$, $7);
-    strcat($$, "\n");
-
-    strcat($$, "    ");
-    strcat($$, $8);
-    strcat($$, "\n");
+    strcat($$, "    "); strcat($$, $7); strcat($$, "\n");
+    strcat($$, "    "); strcat($$, $8); strcat($$, "\n");
 };
 
 %%
