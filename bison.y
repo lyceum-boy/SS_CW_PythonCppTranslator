@@ -31,7 +31,7 @@ void yyerror(const char *s) {
 %type <data> MAIN BLOCK_PRINTS PRINT_STMT PRINT_IN_LOOP
 %type <data> COMMENT_LINE TEXT_ASSIGN LENGTH_ASSIGN BLOCK_STRINGS
 %type <data> COND_BLOCK IF_PART ELIF_PART ELSE_PART
-%type <data> BLOCK_WHILE
+%type <data> BLOCK_WHILE BLOCK_FOR_CONTINUE
 
 %start START
 
@@ -56,13 +56,25 @@ HEADER: {
     strcpy(
         $$,
         "#include <iostream>\n"
-        "#include <vector>\n\n"
+        "#include <vector>\n"
         "#include <string>\n\n"
         "using namespace std;\n\n"
+        "template <typename T>\n"
+        "ostream& operator<<(ostream& out, const vector<T>& vec) {\n"
+        "    if (!vec.empty()) {\n"
+        "        out << \"{\";\n"
+        "        for (size_t i = 0; i < vec.size(); ++i) {\n"
+        "            out << vec[i];\n"
+        "            if (i + 1 != vec.size()) out << \", \";\n"
+        "        }\n"
+        "        out << \"}\";\n"
+        "    }\n"
+        "    return out;\n"
+        "}\n\n"
     );
 };
 
-MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK BLOCK_WHILE {
+MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK BLOCK_WHILE BLOCK_FOR_CONTINUE {
     strcpy($$, "int main() {\n");
     strcat($$, "    system(\"chcp 65001\");\n");
     strcat($$, "    system(\"cls\");\n\n");
@@ -75,6 +87,8 @@ MAIN: BLOCK_FOR BLOCK_PRINTS BLOCK_STRINGS COND_BLOCK BLOCK_WHILE {
     strcat($$, $4);
     strcat($$, "\n");
     strcat($$, $5);
+    strcat($$, "\n");
+    strcat($$, $6);
     strcat($$, "\n");
     strcat($$, "    return 0;\n");
     strcat($$, "}\n");
@@ -494,6 +508,48 @@ BLOCK_WHILE
 
     strcat($$, "    ");
     strcat($$, $20);
+    strcat($$, "\n");
+};
+
+BLOCK_FOR_CONTINUE
+  : COMMENT_LINE
+    LIST_SQUARES
+    FOR_HEADER
+        IF EXPR COLON
+            IDENT
+        APPEND_CALL
+    PRINT_STMT
+{
+    strcpy($$, "    ");
+    strcat($$, $1);
+    strcat($$, "\n");
+
+    strcat($$, "    ");
+    strcat($$, $2);
+
+    strcat($$, "    ");
+    strcat($$, $3);
+
+    strcat($$, "        if (");
+    strcat($$, $5);
+    strcat($$, ") {\n");
+    strcat($$, "            ");
+    if (strcmp($7, "continue") == 0) {
+        strcat($$, "continue;\n");
+    } else {
+        strcat($$, $7);
+        strcat($$, ";\n");
+    }
+    strcat($$, "        }\n");
+
+    strcat($$, "        ");
+    strcat($$, $8);
+    strcat($$, "\n");
+
+    strcat($$, "    }\n");
+
+    strcat($$, "    ");
+    strcat($$, $9);
     strcat($$, "\n");
 };
 

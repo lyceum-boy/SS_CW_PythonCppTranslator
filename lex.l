@@ -21,6 +21,7 @@
 "if"     { return IF; }
 "elif"   { return ELIF; }
 "else"   { return ELSE; }
+"range"  { return RANGE; }
 
 "("      { return LPAREN; }
 ")"      { return RPAREN; }

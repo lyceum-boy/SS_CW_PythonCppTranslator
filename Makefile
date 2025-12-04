@@ -16,7 +16,7 @@ ast:
 	bison -g bison.y
 	dot -Tpng -O bison.dot
 
-run: main.cpp
+run: translate
 	g++ main.cpp -o main.exe
 	./main.exe
 

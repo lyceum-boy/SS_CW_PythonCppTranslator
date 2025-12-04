@@ -50,3 +50,12 @@ while True:
     x += 1
 
 print("Сумма чётных чисел от 0 до 10:", sum_even)
+
+# Использование continue в цикле.
+odd_numbers = []
+for n in range(1, 15):
+    if n % 2 == 0:
+        continue
+    odd_numbers.append(n)
+
+print("Нечётные числа:", odd_numbers)
