@@ -1,7 +1,7 @@
-.PHONY: translate clean ast run rebuild
+.PHONY: translate clean ast ast-color run rebuild
 
 translate:
-	bison -dy -v bison.y
+	bison -dy -v --graph=ast.dot bison.y
 	flex -v lex.l
 	gcc lex.yy.c y.tab.c -o a.exe
 	./a.exe
@@ -10,14 +10,19 @@ clean:
 	rm -f y.output y.tab.c y.tab.h
 	rm -f lex.yy.c
 	rm -f a.exe main.cpp main.exe
-	rm -f bison.tab.c bison.dot bison.dot.png
+	rm -f bison.tab.c 
+	rm -f ast.dot ast.png
+	rm -f ast-color.dot ast-color.png
 
-ast:
-	bison -g bison.y
-	dot -Tpng -O bison.dot
+ast: translate
+	dot -Tpng ast.dot -o ast.png
+
+ast-color: translate
+	python ast_postproc.py < ast.dot > ast-color.dot
+	dot -Tpng ast-color.dot -o ast-color.png
 
 run: main.cpp
 	g++ main.cpp -o main.exe
 	./main.exe
 
-rebuild: clean translate ast
+rebuild: clean translate ast ast-color
