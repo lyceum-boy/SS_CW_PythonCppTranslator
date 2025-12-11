@@ -7,6 +7,7 @@ extern FILE *yyin;
 extern FILE *yyout;
 extern char *yytext;
 extern int yylineno;
+#define YYDEBUG 1
 #define YYERROR_VERBOSE 1
 void yyerror(const char *s) {
     fprintf(stderr, "Error at line %d near '%s': %s\n", yylineno, yytext, s);
@@ -663,6 +664,7 @@ BLOCK_WORDS
 %%
 
 int main(void) {
+    yydebug = 1;
     yyin = fopen("main.py", "r");
     if (!yyin) {
         perror("Error opening main.py");

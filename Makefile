@@ -4,12 +4,13 @@ translate:
 	bison -dy -v --graph=ast.dot bison.y
 	flex -v lex.l
 	gcc lex.yy.c y.tab.c -o a.exe
-	./a.exe
+	./a.exe > debug.log 2>&1
 
 clean:
 	rm -f y.output y.tab.c y.tab.h
 	rm -f lex.yy.c
-	rm -f a.exe main.cpp main.exe
+	rm -f a.exe debug.log
+	rm -f main.cpp main.exe 
 	rm -f bison.tab.c 
 	rm -f ast.dot ast.png
 	rm -f ast-color.dot ast-color.png
